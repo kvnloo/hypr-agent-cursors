@@ -1,0 +1,10 @@
+build/
+.audit/
+nest/
+*.o
+*.so
+compile_commands.json
+.cache/
+*.user
+.idea/
+.vscode/
