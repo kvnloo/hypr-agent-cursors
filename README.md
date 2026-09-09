@@ -15,9 +15,9 @@ cursor, keyboard focus, and pressed-state in an out-of-tree registry. The human
 | Unit: virtual-monitor bind + clamp + live denylist | GREEN (`make test-vout`) |
 | Unit: N-agent parallel workflow simulator | GREEN (`make test-parallel`, 4-agent scenario) |
 | Plugin ABI shim (`pluginAPIVersion`/`pluginInit`/`pluginExit`) | GREEN (`make test-abi`) |
-| Full `hypr_agent_cursors.so` link | builds; offline dlopen fails (needs compositor symbols) |
-| Nested Hyprland + visible multi-cursor + real KB inject | **NOT PROVEN** |
-| Live seat mutations | **FORBIDDEN** — never done in this work |
+| Full `hypr_agent_cursors.so` link | builds; offline dlopen fails (needs compositor symbols) ([#3](https://github.com/kvnloo/hypr-agent-cursors/issues/3), [#4](https://github.com/kvnloo/hypr-agent-cursors/issues/4)) |
+| Nested Hyprland + visible multi-cursor + real KB inject | **NOT PROVEN** ([#1](https://github.com/kvnloo/hypr-agent-cursors/issues/1), [#2](https://github.com/kvnloo/hypr-agent-cursors/issues/2)) |
+| Live seat mutations | **FORBIDDEN** — never done in this work ([#5](https://github.com/kvnloo/hypr-agent-cursors/issues/5)) |
 
 A virtual headless output on the **live** instance still shares `seat0`. That is not
 multi-cursor. Nested HIS only.
@@ -51,8 +51,22 @@ export HYPR_AGENT_LIVE_SIGNATURE="$HYPRLAND_INSTANCE_SIGNATURE"  # capture human
 Four subagent workdirs under `/tmp/swarm-hypr-agent/worker-{kb,vout,abi,parallel}/`.
 Merged RESULT copies: `.audit/worker-results/`.
 
+## Open work
+
+| Issue | What |
+|-------|------|
+| [#1](https://github.com/kvnloo/hypr-agent-cursors/issues/1) | Nested HIS load + visible second cursor |
+| [#2](https://github.com/kvnloo/hypr-agent-cursors/issues/2) | Agent keyboard inject without touching host seat |
+| [#3](https://github.com/kvnloo/hypr-agent-cursors/issues/3) | Wire `plugin/main.cpp` to HyprlandAPI (nest-only) |
+| [#4](https://github.com/kvnloo/hypr-agent-cursors/issues/4) | Offline full-`.so` `dlopen(RTLD_NOW)` fails by design |
+| [#5](https://github.com/kvnloo/hypr-agent-cursors/issues/5) | Disclaimers: not a second `wl_seat`, never touch live HIS |
+
+Do not start the nest or `hyprctl plugin load` against live. `scripts/never-touch-live.sh` refuses when target HIS equals `HYPR_AGENT_LIVE_SIGNATURE`.
+
 ## Not claimed
 
 - Second `wl_seat` in Hyprland core
 - Visible second cursor on your eDP-1 session
+- Multi-cursor via live `output create headless` / wayvnc (still one seat)
 - Working computer-use inject that does not move `CPointerManager::m_pointerPos`
+- Local `media/` mockups — not in git, not the plugin contract
