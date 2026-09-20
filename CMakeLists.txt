@@ -11,12 +11,14 @@ find_package(GTest REQUIRED)
 add_library(hypr_agent_cursors_core STATIC
   src/agent_seats.cpp
   src/live_session_guard.cpp
+  src/workspace_lease.cpp
 )
 target_include_directories(hypr_agent_cursors_core PUBLIC include)
 
 add_executable(hypr_agent_cursors_tests
   tests/test_agent_seats.cpp
   tests/test_live_session_guard.cpp
+  tests/test_workspace_lease.cpp
 )
 target_link_libraries(hypr_agent_cursors_tests
   PRIVATE

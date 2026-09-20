@@ -14,6 +14,7 @@ cursor, keyboard focus, and pressed-state in an out-of-tree registry. The human
 | Unit: multi-agent keyboard isolation | GREEN (press/release/host split) |
 | Unit: virtual-monitor bind + clamp + live denylist | GREEN (`make test-vout`) |
 | Unit: N-agent parallel workflow simulator | GREEN (`make test-parallel`, 4-agent scenario) |
+| Unit: agent workspace lease lifecycle | COMPILES + standalone smoke GREEN; repo GTest target added, not run in this environment (`make test-lease`) |
 | Plugin ABI shim (`pluginAPIVersion`/`pluginInit`/`pluginExit`) | GREEN (`make test-abi`) |
 | Full `hypr_agent_cursors.so` link | builds; offline dlopen fails (needs compositor symbols) ([#3](https://github.com/kvnloo/hypr-agent-cursors/issues/3), [#4](https://github.com/kvnloo/hypr-agent-cursors/issues/4)) |
 | Nested Hyprland + visible multi-cursor + real KB inject | **NOT PROVEN** ([#1](https://github.com/kvnloo/hypr-agent-cursors/issues/1), [#2](https://github.com/kvnloo/hypr-agent-cursors/issues/2)) |
@@ -21,6 +22,12 @@ cursor, keyboard focus, and pressed-state in an out-of-tree registry. The human
 
 A virtual headless output on the **live** instance still shares `seat0`. That is not
 multi-cursor. Nested HIS only.
+
+The workspace-lease layer is intentionally weaker than input isolation: it owns a
+compositor/output/workspace namespace, launched process ids, and cleanup
+lifecycle. The leased output is also the observation/capture boundary. A lease can be useful for GUI TDD, remote desktops, or agent
+workspaces without claiming an independent cursor or keyboard. Input is a
+separate capability attached only after nested/plugin evidence proves it.
 
 ## Prove unit layer
 
@@ -60,6 +67,7 @@ Merged RESULT copies: `.audit/worker-results/`.
 | [#3](https://github.com/kvnloo/hypr-agent-cursors/issues/3) | Wire `plugin/main.cpp` to HyprlandAPI (nest-only) |
 | [#4](https://github.com/kvnloo/hypr-agent-cursors/issues/4) | Offline full-`.so` `dlopen(RTLD_NOW)` fails by design |
 | [#5](https://github.com/kvnloo/hypr-agent-cursors/issues/5) | Disclaimers: not a second `wl_seat`, never touch live HIS |
+| [#6](https://github.com/kvnloo/hypr-agent-cursors/issues/6) | Agent workspace lease: isolate desktop lifecycle from optional input |
 
 Do not start the nest or `hyprctl plugin load` against live. `scripts/never-touch-live.sh` refuses when target HIS equals `HYPR_AGENT_LIVE_SIGNATURE`.
 

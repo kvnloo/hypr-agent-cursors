@@ -4,7 +4,7 @@ GTEST_LIBS := $(shell pkg-config --libs gtest_main)
 BUILD := build
 HYPR_CFLAGS := $(shell pkg-config --cflags hyprland 2>/dev/null)
 
-.PHONY: test test-seats test-vout test-parallel test-abi shim full plugin nm clean cli
+.PHONY: test test-seats test-vout test-parallel test-lease test-abi shim full plugin nm clean cli
 
 # --- unit suites (separate binaries: each module owns its Vec2 in isolation) ---
 
@@ -25,6 +25,13 @@ $(BUILD)/multi_agent_session_tests: src/multi_agent_session.cpp tests/test_multi
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) src/multi_agent_session.cpp tests/test_multi_agent_session.cpp $(GTEST_LIBS) -o $@
 
+$(BUILD)/workspace_lease_tests: src/workspace_lease.cpp src/live_session_guard.cpp \
+		tests/test_workspace_lease.cpp \
+		include/hypr_agent_cursors/workspace_lease.hpp include/hypr_agent_cursors/live_session_guard.hpp
+	mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) src/workspace_lease.cpp src/live_session_guard.cpp \
+		tests/test_workspace_lease.cpp $(GTEST_LIBS) -o $@
+
 $(BUILD)/plugin_shim.so: plugin/shim.cpp
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) -fPIC -shared -DHYPR_AGENT_CURSORS_TEST_SHIM=1 plugin/shim.cpp -o $@
@@ -42,12 +49,15 @@ test-vout: $(BUILD)/virtual_monitor_tests
 test-parallel: $(BUILD)/multi_agent_session_tests
 	$(BUILD)/multi_agent_session_tests --gtest_color=no
 
+test-lease: $(BUILD)/workspace_lease_tests
+	$(BUILD)/workspace_lease_tests --gtest_color=no
+
 test-abi: $(BUILD)/test_abi $(BUILD)/plugin_shim.so
 	$(BUILD)/test_abi $(BUILD)/plugin_shim.so
 	nm -D --defined-only $(BUILD)/plugin_shim.so | grep -E 'pluginAPIVersion|pluginInit|pluginExit'
 
-test: test-seats test-vout test-parallel test-abi
-	@echo 'ALL unit suites green (seats+kb, virtual-monitor, multi-agent, plugin shim ABI)'
+test: test-seats test-vout test-parallel test-lease test-abi
+	@echo 'ALL unit suites green (seats+kb, virtual-monitor, multi-agent, workspace-lease, plugin shim ABI)'
 
 shim: $(BUILD)/plugin_shim.so
 
